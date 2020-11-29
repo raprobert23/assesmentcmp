@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+
+  db:
+    container_name: cmpdb
+    image: postgres
+    hostname: db
+    environment:
+      GET_HOST_FROM: dns
+      POSTGRES_DB: dev
+      POSTGRES_USER: postgres-dev
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    networks:
+      - cmpnet
+
+  cmpapi:
+    container_name: cmpapi
+    image: golang
+    hostname: cmpapi
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      GET_HOSTS_FROM: dns
+    networks:
+      - cmpnet
+    volumes:
+      - .:/go/src/cmpapi
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    links:
+      - db
+    labels:
+      kompose.service.type: LoadBalancer
+
+networks:
+  cmpnet:
+    driver: bridge
